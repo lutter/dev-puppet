@@ -1,0 +1,42 @@
+#! /bin/bash
+
+# Start a container with the Puppet agent from current source in it
+#
+# Pass the certname you want for your agent as the first argument to the script
+#
+# Set the environment variable PUPPET_DIR to the directory that contains
+# your checkout of git://github.com/puppetlabs/puppet.git
+
+# Assumes you ran 'bundle install --path vendor/bundle'
+
+if [ -z $1 ]; then
+  echo "USAGE: $0 <FQDN>"
+  echo "To run against a code checkout of Puppet, point PUPPET_DIR at the checkout"
+  # echo "Otherwise, runs a globally installed Puppet (must be on the path)"
+  exit 1
+fi
+
+if [ ! -d "$PUPPET_DIR" ]; then
+  echo "Set the environment variable PUPPET_DIR to the directory that"
+  echo "contains your checkout of https://github.com/puppetlabs/puppet"
+  exit 1
+fi
+
+TOP_DIR=$(realpath $(dirname $0)/..)
+AGENT_DIR=$TOP_DIR/state/agents/$1
+
+for d in etc var; do
+  mkdir -p $AGENT_DIR/$d
+done
+
+DOMAIN=$(facter domain)
+IP_ADDR=$(facter ipaddress_docker0)
+
+docker run -it \
+       --add-host "puppet:${IP_ADDR}" \
+       -v $PUPPET_DIR:/srv/puppet:z \
+       -v $AGENT_DIR/etc:/etc/puppet:Z \
+       -v $AGENT_DIR/var:/var/lib/puppet:Z \
+       --name "agent-$1" \
+       --hostname "$1.${DOMAIN}" \
+       --rm agent /bin/bash

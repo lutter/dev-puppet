@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# Run the Puppet agent from source inside a container
+#
+# When run without arguments, pass some sensible default arguments; when
+# arguments are passed, pass them to 'puppet agent' directly
+cd /srv/puppet
+
+PUPPET="bundle exec ./bin/puppet"
+
+if [ $# -eq 0 ]; then
+    $PUPPET agent --trace --test --waitforcert 60
+else
+    $PUPPET agent "$@"
+fi
