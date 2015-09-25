@@ -1,0 +1,22 @@
+;; -*- clojure -*-
+(ns pe-config)
+
+(def basedir
+  "Path to a copy of /etc/puppetlabs/puppet/ssl from your PE Master"
+  "/home/irene/puppet-master/ssl")
+
+(def puppet-master
+  "The fqdn of your puppet-master"
+  "puppet-master.example.com")
+
+(def config
+  {
+   :ssl-config
+   {:ssl-cert    (format "%s/certs/%s.pem" basedir puppet-master)
+    :ssl-key     (format "%s/private_keys/%s.pem" basedir puppet-master)
+    :ssl-ca-cert (format "%s/certs/ca.pem" basedir)}
+   :puppet-hostname puppet-master
+   :classifier-service (format "https://%s:4433/classifier-api/v1" puppet-master)
+   :puppetdb-service (format "https://%s:8081/pdb/query/v4" puppet-master)
+   :puppetdb-cmd-service (format "https://%s:8081/pdb/cmd/v1" puppet-master)
+   })
